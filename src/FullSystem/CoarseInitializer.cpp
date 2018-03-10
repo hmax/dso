@@ -36,11 +36,15 @@
 #include "FullSystem/PixelSelector.h"
 #include "FullSystem/PixelSelector2.h"
 #include "util/nanoflann.h"
+#include <Eigen/Core>
+#include <Eigen/Cholesky>
+#include <Eigen/LU>
 
 
-#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
-#include "SSE2NEON.h"
-#endif
+
+//#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
+//#include "SSE2NEON.h"
+//#endif
 
 namespace dso
 {
@@ -924,7 +928,8 @@ void CoarseInitializer::applyStep(int lvl)
 		pts[i].idepth = pts[i].idepth_new;
 		pts[i].lastHessian = pts[i].lastHessian_new;
 	}
-	std::swap<Vec10f*>(JbBuffer, JbBuffer_new);
+	(*JbBuffer).swap(*JbBuffer_new);
+	//std::swap<Vec10f*>(JbBuffer, JbBuffer_new);
 }
 
 void CoarseInitializer::makeK(CalibHessian* HCalib)

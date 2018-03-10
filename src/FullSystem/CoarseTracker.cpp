@@ -35,11 +35,13 @@
 #include "FullSystem/Residuals.h"
 #include "OptimizationBackend/EnergyFunctionalStructs.h"
 #include "IOWrapper/ImageRW.h"
+#include <Eigen/Cholesky>
 #include <algorithm>
+#include <Eigen/LU>
 
-#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
-#include "SSE2NEON.h"
-#endif
+//#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
+//#include "SSE2NEON.h"
+//#endif
 
 namespace dso
 {
@@ -142,7 +144,7 @@ void CoarseTracker::makeCoarseDepthL0(std::vector<FrameHessian*> frameHessians)
 	{
 		for(PointHessian* ph : fh->pointHessians)
 		{
-			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::IN)
+			if(ph->lastResiduals[0].first != 0 && ph->lastResiduals[0].second == ResState::_IN)
 			{
 				PointFrameResidual* r = ph->lastResiduals[0].first;
 				assert(r->efResidual->isActive() && r->target == lastRef);
@@ -594,7 +596,8 @@ bool CoarseTracker::trackNewestCoarse(
 		for(int iteration=0; iteration < maxIterations[lvl]; iteration++)
 		{
 			Mat88 Hl = H;
-			for(int i=0;i<8;i++) Hl(i,i) *= (1+lambda);
+			for(int i=0;i<8;i++) 
+				Hl(i,i) *= (1+lambda);
 			Vec8 inc = Hl.ldlt().solve(-b);
 
 			if(setting_affineOptModeA < 0 && setting_affineOptModeB < 0)	// fix a, b
@@ -842,8 +845,8 @@ CoarseDistanceMap::CoarseDistanceMap(int ww, int hh)
 {
 	fwdWarpedIDDistFinal = new float[ww*hh/4];
 
-	bfsList1 = new Eigen::Vector2i[ww*hh/4];
-	bfsList2 = new Eigen::Vector2i[ww*hh/4];
+	bfsList1 = std::vector<Eigen::Vector2i>(static_cast<size_t>(ww*hh/4));
+	bfsList2 = std::vector<Eigen::Vector2i>(static_cast<size_t>(ww*hh/4));
 
 	int fac = 1 << (pyrLevelsUsed-1);
 
@@ -856,8 +859,8 @@ CoarseDistanceMap::CoarseDistanceMap(int ww, int hh)
 CoarseDistanceMap::~CoarseDistanceMap()
 {
 	delete[] fwdWarpedIDDistFinal;
-	delete[] bfsList1;
-	delete[] bfsList2;
+	//delete bfsList1;
+	//delete bfsList2;
 	delete[] coarseProjectionGrid;
 	delete[] coarseProjectionGridNum;
 }
@@ -873,6 +876,8 @@ void CoarseDistanceMap::makeDistanceMap(
 	int w1 = w[1];
 	int h1 = h[1];
 	int wh1 = w1*h1;
+	std::cout << "W1: " << w1 << " H1: " << h1 << " WH1: " << wh1 << std::endl;
+
 	for(int i=0;i<wh1;i++)
 		fwdWarpedIDDistFinal[i] = 1000;
 
@@ -896,6 +901,7 @@ void CoarseDistanceMap::makeDistanceMap(
 			int v = ptp[1] / ptp[2] + 0.5f;
 			if(!(u > 0 && v > 0 && u < w[1] && v < h[1])) continue;
 			fwdWarpedIDDistFinal[u+w1*v]=0;
+
 			bfsList1[numItems] = Eigen::Vector2i(u,v);
 			numItems++;
 		}
@@ -921,7 +927,7 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 	for(int k=1;k<40;k++)
 	{
 		int bfsNum2 = bfsNum;
-		std::swap<Eigen::Vector2i*>(bfsList1,bfsList2);
+		std::swap(bfsList1,bfsList2);
 		bfsNum=0;
 
 		if(k%2==0)
@@ -932,6 +938,7 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 				int y = bfsList2[i][1];
 				if(x==0 || y== 0 || x==w1-1 || y==h1-1) continue;
 				int idx = x + y * w1;
+				//std::cout << "Vector: " << bfsList2[i] << " x: " << x << " y: " << y << " w1: " << w1 << " idx: " << idx << std::endl;
 
 				if(fwdWarpedIDDistFinal[idx+1] > k)
 				{
@@ -962,7 +969,9 @@ void CoarseDistanceMap::growDistBFS(int bfsNum)
 				int x = bfsList2[i][0];
 				int y = bfsList2[i][1];
 				if(x==0 || y== 0 || x==w1-1 || y==h1-1) continue;
+
 				int idx = x + y * w1;
+				//std::cout << "Vector: " << bfsList2[i] << " x: " << x << " y: " << y << " w1: " << w1 << " idx: " << idx << " i: " << i << std::endl;
 
 				if(fwdWarpedIDDistFinal[idx+1] > k)
 				{

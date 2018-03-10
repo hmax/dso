@@ -28,16 +28,18 @@
 #include <signal.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <unistd.h>
+//#include <unistd.h>
 
 #include "IOWrapper/Output3DWrapper.h"
 #include "IOWrapper/ImageDisplay.h"
 
 
 #include <boost/thread.hpp>
+#include <boost/filesystem.hpp>
 #include "util/settings.h"
 #include "util/globalFuncs.h"
-#include "util/DatasetReader.h"
+#include "util/DatasetReader_Image.h"
+#include "util/DatasetReader_Video.h"
 #include "util/globalCalib.h"
 
 #include "util/NumType.h"
@@ -49,6 +51,9 @@
 
 #include "IOWrapper/Pangolin/PangolinDSOViewer.h"
 #include "IOWrapper/OutputWrapper/SampleOutputWrapper.h"
+
+
+int gettimeofday(struct timeval *tv, struct timezone *tz);
 
 
 std::string vignette = "";
@@ -81,14 +86,14 @@ void my_exit_handler(int s)
 
 void exitThread()
 {
-	struct sigaction sigIntHandler;
+	/*struct sigaction sigIntHandler;
 	sigIntHandler.sa_handler = my_exit_handler;
 	sigemptyset(&sigIntHandler.sa_mask);
 	sigIntHandler.sa_flags = 0;
 	sigaction(SIGINT, &sigIntHandler, NULL);
 
 	firstRosSpin=true;
-	while(true) pause();
+	while(true) pause();*/
 }
 
 
@@ -350,6 +355,20 @@ void parseArgument(char* arg)
 }
 
 
+void usleep(__int64 usec)
+{
+	HANDLE timer;
+	LARGE_INTEGER ft;
+
+	ft.QuadPart = -(10 * usec); // Convert to 100 nanosecond interval, negative value indicates relative time
+
+	timer = CreateWaitableTimer(NULL, TRUE, NULL);
+	SetWaitableTimer(timer, &ft, 0, NULL, NULL, 0);
+	WaitForSingleObject(timer, INFINITE);
+	CloseHandle(timer);
+}
+
+
 
 int main( int argc, char** argv )
 {
@@ -360,8 +379,13 @@ int main( int argc, char** argv )
 	// hook crtl+C.
 	boost::thread exThread = boost::thread(exitThread);
 
-
-	ImageFolderReader* reader = new ImageFolderReader(source,calib, gammaCalib, vignette);
+	DatasetReader* reader = nullptr;
+	boost::filesystem::path p(source);
+	if (p.extension() == ".MP4"){
+		reader = new VideoReader(source,calib, gammaCalib, vignette);
+	}else{
+		reader = new ImageFolderReader(source, calib, gammaCalib, vignette);
+	}
 	reader->setGlobalCalibration();
 
 

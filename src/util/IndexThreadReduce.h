@@ -26,6 +26,7 @@
 #pragma once
 #include "util/settings.h"
 #include "boost/thread.hpp"
+#include "boost/function.hpp"
 #include <stdio.h>
 #include <iostream>
 

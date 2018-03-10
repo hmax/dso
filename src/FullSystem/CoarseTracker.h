@@ -166,8 +166,8 @@ private:
 
 	PointFrameResidual** coarseProjectionGrid;
 	int* coarseProjectionGridNum;
-	Eigen::Vector2i* bfsList1;
-	Eigen::Vector2i* bfsList2;
+	std::vector<Eigen::Vector2i> bfsList1;
+	std::vector<Eigen::Vector2i> bfsList2;
 
 	void growDistBFS(int bfsNum);
 };

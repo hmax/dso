@@ -266,7 +266,7 @@ private:
 	IndexThreadReduce<Vec10> treadReduce;
 
 	float* selectionMap;
-	PixelSelector* pixelSelector;
+	dso::PixelSelector* pixelSelector;
 	CoarseDistanceMap* coarseDistanceMap;
 
 	std::vector<FrameHessian*> frameHessians;	// ONLY changed in marginalizeFrame and addFrame.

@@ -23,18 +23,18 @@
 
 
 #pragma once
-#include <pangolin/pangolin.h>
+#include <pangolin/pangolin_export.h>
 #include "boost/thread.hpp"
 #include "util/MinimalImage.h"
 #include "IOWrapper/Output3DWrapper.h"
 #include <map>
 #include <deque>
-
+#include <Winsock2.h>
 
 namespace dso
 {
 
-class FrameHessian;
+struct FrameHessian;
 class CalibHessian;
 class FrameShell;
 

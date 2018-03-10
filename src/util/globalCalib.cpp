@@ -26,6 +26,7 @@
 #include "util/globalCalib.h"
 #include "stdio.h"
 #include <iostream>
+#include <Eigen/LU>
 
 namespace dso
 {

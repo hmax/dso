@@ -28,9 +28,9 @@
 #include "FullSystem/HessianBlocks.h"
 #include "FullSystem/Residuals.h"
 
-#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
-#include "SSE2NEON.h"
-#endif
+//#if !defined(__SSE3__) && !defined(__SSE2__) && !defined(__SSE1__)
+//#include "SSE2NEON.h"
+//#endif
 
 namespace dso
 {
@@ -38,7 +38,8 @@ namespace dso
 
 void EFResidual::takeDataF()
 {
-	std::swap<RawResidualJacobian*>(J, data->J);
+	(*J).swap(*(data->J));
+	//std::swap<RawResidualJacobian*>(J, data->J);
 
 	Vec2f JI_JI_Jd = J->JIdx2 * J->Jpdd;
 

@@ -57,7 +57,21 @@ struct RawResidualJacobian
 	Mat22f JabJIdx;			// 2x2
 	// = Jab^T * Jab (inner product). Only as a shorthand.
 	Mat22f Jab2;			// 2x2
-
+	void swap(RawResidualJacobian& other) {
+		resF.swap(other.resF);
+		Jpdxi[0].swap(other.Jpdxi[0]);
+		Jpdxi[1].swap(other.Jpdxi[1]);
+		Jpdc[0].swap(other.Jpdc[0]);
+		Jpdc[1].swap(other.Jpdc[1]);
+		Jpdd.swap(other.Jpdd);
+		JIdx[0].swap(other.JIdx[0]);
+		JIdx[1].swap(other.JIdx[1]);
+		JabF[0].swap(other.JabF[0]);
+		JabF[1].swap(other.JabF[1]);
+		JIdx2.swap(other.JIdx2);
+		JabJIdx.swap(other.JabJIdx);
+		Jab2.swap(other.Jab2);
+	}
 };
 }
 
