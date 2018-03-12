@@ -48,12 +48,14 @@ namespace dso
 		int wlvl=w;
 		int hlvl=h;
 		pyrLevelsUsed=1;
+
 		while(wlvl%2==0 && hlvl%2==0 && wlvl*hlvl > 5000 && pyrLevelsUsed < PYR_LEVELS)
 		{
 			wlvl /=2;
 			hlvl /=2;
 			pyrLevelsUsed++;
 		}
+
 		printf("using pyramid levels 0 to %d. coarsest resolution: %d x %d!\n",
 				pyrLevelsUsed-1, wlvl, hlvl);
 		if(wlvl>100 && hlvl > 100)
@@ -103,6 +105,7 @@ namespace dso
 			cxiG[level] = KiG[level](0,2);
 			cyiG[level] = KiG[level](1,2);
 		}
+
 	}
 
 

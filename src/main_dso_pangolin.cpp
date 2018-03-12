@@ -386,9 +386,8 @@ int main( int argc, char** argv )
 	}else{
 		reader = new ImageFolderReader(source, calib, gammaCalib, vignette);
 	}
+	std::cout << "VideoReader initialized, setting global calibration" << std::endl;
 	reader->setGlobalCalibration();
-
-
 
 	if(setting_photometricCalibration > 0 && reader->getPhotometricGamma() == 0)
 	{
@@ -425,14 +424,14 @@ int main( int argc, char** argv )
 
 
     IOWrap::PangolinDSOViewer* viewer = 0;
-	if(!disableAllDisplay)
+	if(!true)
     {
         viewer = new IOWrap::PangolinDSOViewer(wG[0],hG[0], false);
         fullSystem->outputWrapper.push_back(viewer);
     }
 
 
-
+	
     if(useSampleOutput)
         fullSystem->outputWrapper.push_back(new IOWrap::SampleOutputWrapper());
 

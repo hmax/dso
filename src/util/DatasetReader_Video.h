@@ -61,7 +61,6 @@ public:
 
 		undistort = Undistort::getUndistorterForFile(calibFile, gammaFile, vignetteFile);
 
-
 		widthOrg = undistort->getOriginalSize()[0];
 		heightOrg = undistort->getOriginalSize()[1];
 		width=undistort->getSize()[0];
@@ -70,7 +69,7 @@ public:
 
 		// load timestamps if possible.
 		loadTimestamps();
-		printf("VideoReader: got frames in %s!\n", path.c_str());
+		printf("VideoReader: got %d frames in %s!\n", static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT)), path.c_str());
 
 	}
 	~VideoReader()
@@ -87,7 +86,8 @@ public:
 
 	int getNumImages()
 	{
-		return 100; // Framecount;
+		std::cout << "FRAME COUNT:=================" << cap.get(cv::CAP_PROP_FRAME_COUNT) << std::endl;
+		return static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT)); // Framecount;
 	}
 
 	double getTimestamp(int id)
@@ -112,6 +112,7 @@ public:
 
 	ImageAndExposure* getImage(int id, bool forceLoadDirectly=false)
 	{
+		std::cout << "Getting first image" << std::endl;
 		return getImage_internal(id, 0);
 	}
 
@@ -131,17 +132,28 @@ private:
 	MinimalImageB* getImageRaw_internal(int id, int unused)
 	{
 		// CHANGE FOR ZIP FILE
-		return nullptr; // IOWrap::readImageBW_8U(frame[id]);
+		cv::Mat m;
+		cap >> m;
+		if(m.rows*m.cols==0)
+		{
+			printf("cv::imread could not read image %f! this may segfault. \n", cap.get(cv::CAP_PROP_POS_FRAMES));
+			return 0;
+		}
+		if(m.type() != CV_8U)
+		{
+			printf("cv::imread did something strange! this may segfault. \n");
+			return 0;
+		}
+		MinimalImageB* img = new MinimalImageB(m.cols, m.rows);
+		memcpy(img->data, m.data, m.rows*m.cols);
+		return img;
 	}
 
 
 	ImageAndExposure* getImage_internal(int id, int unused)
 	{
 		MinimalImageB* minimg = getImageRaw_internal(id, 0);
-		ImageAndExposure* ret2 = undistort->undistort<unsigned char>(
-				minimg,
-				(exposures.size() == 0 ? 1.0f : exposures[id]),
-				(timestamps.size() == 0 ? 0.0 : timestamps[id]));
+		ImageAndExposure* ret2 = undistort->undistort<unsigned char>(minimg, (exposures.size() == 0 ? 1.0f : exposures[id]), (timestamps.size() == 0 ? 0.0 : timestamps[id]));
 		delete minimg;
 		return ret2;
 	}

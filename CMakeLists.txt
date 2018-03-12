@@ -29,14 +29,14 @@ find_package(OpenCV QUIET)
 
 # flags
 add_definitions("-DENABLE_SSE")
-set(CMAKE_CXX_FLAGS
-        "${SSE_FLAGS} /bigobj"# -O3 -g -std=c++0x -march=native"
+set(CMAKE_CXX_FLAGS "${SSE_FLAGS} ")# -O3 -g -std=c++0x -march=native"
         #   "${SSE_FLAGS} -O3 -g -std=c++0x -fno-omit-frame-pointer"
-        )
 
 if (MSVC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc")
-endif (MSVC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /EHsc /bigobj")
+else()
+    set(CMAKE_CXX_FLAGS "${SSE_FLAGS} -O3 -g -std=c++11 -fno-omit-frame-pointer -march=native")
+endif()
 
 set(dso_HEADER_FILES
         ${PROJECT_SOURCE_DIR}/src/util/FrameShell.h

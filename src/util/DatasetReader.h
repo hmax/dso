@@ -38,9 +38,11 @@ protected:
 public:
     void getCalibMono(Eigen::Matrix3f &K, int &w, int &h)
     {
+
         K = undistort->getK().cast<float>();
         w = undistort->getSize()[0];
         h = undistort->getSize()[1];
+
     }
 
     void setGlobalCalibration()
@@ -48,7 +50,12 @@ public:
         int w_out, h_out;
         Eigen::Matrix3f K;
         getCalibMono(K, w_out, h_out);
+        std::cout << "MATRIX: " << K << std::endl;
+        std::cout << w_out << std::endl;
+        std::cout << h_out << std::endl;
+
         dso::setGlobalCalib(w_out, h_out, K);
+
     }
 
     virtual int getNumImages() = 0;
