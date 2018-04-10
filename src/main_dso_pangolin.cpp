@@ -52,8 +52,9 @@
 #include "IOWrapper/Pangolin/PangolinDSOViewer.h"
 #include "IOWrapper/OutputWrapper/SampleOutputWrapper.h"
 
-
+#ifdef _WIN32
 int gettimeofday(struct timeval *tv, struct timezone *tz);
+#endif
 
 
 std::string vignette = "";
@@ -354,7 +355,7 @@ void parseArgument(char* arg)
 	printf("could not parse argument \"%s\"!!!!\n", arg);
 }
 
-
+#ifdef _WIN32
 void usleep(__int64 usec)
 {
 	HANDLE timer;
@@ -367,7 +368,7 @@ void usleep(__int64 usec)
 	WaitForSingleObject(timer, INFINITE);
 	CloseHandle(timer);
 }
-
+#endif
 
 
 int main( int argc, char** argv )
@@ -381,7 +382,7 @@ int main( int argc, char** argv )
 
 	DatasetReader* reader = nullptr;
 	boost::filesystem::path p(source);
-	if (p.extension() == ".MP4"){
+	if (p.extension() == ".mp4"){
 		reader = new VideoReader(source,calib, gammaCalib, vignette);
 	}else{
 		reader = new ImageFolderReader(source, calib, gammaCalib, vignette);
@@ -424,7 +425,7 @@ int main( int argc, char** argv )
 
 
     IOWrap::PangolinDSOViewer* viewer = 0;
-	if(!true)
+	if(!disableAllDisplay)
     {
         viewer = new IOWrap::PangolinDSOViewer(wG[0],hG[0], false);
         fullSystem->outputWrapper.push_back(viewer);

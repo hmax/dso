@@ -150,7 +150,16 @@ public:
 		delete undistort;
 	};
 
-	dso::MinimalImageB* getImageRaw_internal(int id, int unused)
+
+    ImageAndExposure* getImage_internal(int id, int unused)
+    {
+        MinimalImageB* minimg = getImageRaw_internal(id, 0);
+        ImageAndExposure* ret2 = undistort->undistort<unsigned char>(minimg, (exposures.size() == 0 ? 1.0f : exposures[id]), (timestamps.size() == 0 ? 0.0 : timestamps[id]));
+        delete minimg;
+        return ret2;
+    }
+
+    dso::MinimalImageB* getImageRaw_internal(int id, int unused)
 	{
 		if(!isZipped)
 		{
@@ -269,6 +278,14 @@ public:
 		printf("got %d images and %d timestamps and %d exposures.!\n", (int)getNumImages(), (int)timestamps.size(), (int)exposures.size());
 	}
 
+	void getCalibMono(Eigen::Matrix3f &K, int &w, int &h)
+	{
+
+		K = undistort->getK().cast<float>();
+		w = undistort->getSize()[0];
+		h = undistort->getSize()[1];
+
+	}
 private:
 
 
@@ -276,6 +293,7 @@ private:
 	int widthOrg, heightOrg;
 	std::vector<std::string> files;
 	bool isZipped;
+
 #if HAS_ZIPLIB
 	zip_t* ziparchive;
 	char* databuffer;

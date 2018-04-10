@@ -38,14 +38,28 @@
 #include <opencv2/core.hpp>
 #include <opencv2/videoio.hpp>
 #include <opencv2/highgui.hpp>
+#include <opencv2/imgproc.hpp>
 #include <boost/thread.hpp>
 
 using namespace dso;
 
+void debug_minimal_image(MinimalImageB* image_raw) {
+	cv::Mat_<uchar> my_mat(image_raw->h, image_raw->w);
+
+	for (auto y = 0; y < image_raw->h; ++y) {
+		for (auto x = 0; x < image_raw->w; ++x) {
+			my_mat.at<uchar>(y, x) = image_raw->data[y * image_raw->w + x];
+		}
+	}
+	cv::imwrite("/Users/mkhardin/Projects/clion-workspace/debug.bmp", my_mat);
+
+	exit(100);
+}
+
 class VideoReader : public DatasetReader
 {
 public:
-    cv::VideoCapture cap;
+	cv::VideoCapture cap;
     VideoReader(std::string path, std::string calibFile, std::string gammaFile, std::string vignetteFile)
 	{
 		this->path = path;
@@ -53,11 +67,8 @@ public:
 
 		cap.open(path);
 		cv::Mat mat;
-		if(cap.isOpened()){
-			auto frame = cap.read(mat);
-		}
-		// read frames
-
+		if(!cap.isOpened())
+			exit(1);
 
 		undistort = Undistort::getUndistorterForFile(calibFile, gammaFile, vignetteFile);
 
@@ -86,7 +97,6 @@ public:
 
 	int getNumImages()
 	{
-		std::cout << "FRAME COUNT:=================" << cap.get(cv::CAP_PROP_FRAME_COUNT) << std::endl;
 		return static_cast<int>(cap.get(cv::CAP_PROP_FRAME_COUNT)); // Framecount;
 	}
 
@@ -112,7 +122,6 @@ public:
 
 	ImageAndExposure* getImage(int id, bool forceLoadDirectly=false)
 	{
-		std::cout << "Getting first image" << std::endl;
 		return getImage_internal(id, 0);
 	}
 
@@ -132,8 +141,11 @@ private:
 	MinimalImageB* getImageRaw_internal(int id, int unused)
 	{
 		// CHANGE FOR ZIP FILE
-		cv::Mat m;
-		cap >> m;
+		cv::Mat tmp;
+		cap >> tmp;
+		cv::Mat_<uchar> m(tmp.rows, tmp.cols);
+
+		cvtColor(tmp, m, CV_BGR2GRAY);
 		if(m.rows*m.cols==0)
 		{
 			printf("cv::imread could not read image %f! this may segfault. \n", cap.get(cv::CAP_PROP_POS_FRAMES));
@@ -144,19 +156,23 @@ private:
 			printf("cv::imread did something strange! this may segfault. \n");
 			return 0;
 		}
-		MinimalImageB* img = new MinimalImageB(m.cols, m.rows);
+        MinimalImageB* img = new MinimalImageB(m.cols, m.rows);
+
 		memcpy(img->data, m.data, m.rows*m.cols);
-		return img;
+
+        return img;
 	}
 
 
 	ImageAndExposure* getImage_internal(int id, int unused)
 	{
 		MinimalImageB* minimg = getImageRaw_internal(id, 0);
+
 		ImageAndExposure* ret2 = undistort->undistort<unsigned char>(minimg, (exposures.size() == 0 ? 1.0f : exposures[id]), (timestamps.size() == 0 ? 0.0 : timestamps[id]));
 		delete minimg;
 		return ret2;
 	}
+
 
 	inline void loadTimestamps()
 	{

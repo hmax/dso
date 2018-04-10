@@ -36,6 +36,10 @@
 #include "IOWrapper/ImageRW.h"
 #include "util/Undistort.h"
 
+#include <opencv2/core.hpp>
+#include <opencv2/highgui.hpp>
+#include <unistd.h>
+
 
 namespace dso
 {
@@ -390,7 +394,6 @@ ImageAndExposure* Undistort::undistort(const MinimalImage<T>* image_raw, float e
 		printf("Undistort::undistort: wrong image size (%d %d instead of %d %d) \n", image_raw->w, image_raw->h, w, h);
 		exit(1);
 	}
-
 	photometricUndist->processFrame<T>(image_raw->data, exposure, factor);
 	ImageAndExposure* result = new ImageAndExposure(w, h, timestamp);
 	photometricUndist->output->copyMetaTo(*result);
@@ -717,10 +720,10 @@ void Undistort::readFromFile(const char* configFileName, int nPars, std::string 
 {
 	photometricUndist=0;
 	valid = false;
-	passthrough=false;
+	passthrough=true;
 	remapX = 0;
 	remapY = 0;
-	
+
 	float outputCalibration[5];
 
 	parsOrg = VecX(nPars);

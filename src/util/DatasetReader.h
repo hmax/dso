@@ -17,16 +17,7 @@ class DatasetReader {
     virtual dso::MinimalImageB* getImageRaw_internal(int id, int unused) = 0;
 
 
-    dso::ImageAndExposure* getImage_internal(int id, int unused)
-    {
-        dso::MinimalImageB* minimg = getImageRaw_internal(id, 0);
-        dso::ImageAndExposure* ret2 = undistort->undistort<unsigned char>(
-                minimg,
-                (exposures.size() == 0 ? 1.0f : exposures[id]),
-                (timestamps.size() == 0 ? 0.0 : timestamps[id]));
-        delete minimg;
-        return ret2;
-    }
+    virtual dso::ImageAndExposure* getImage_internal(int id, int unused) = 0;
 protected:
     virtual  void loadTimestamps() = 0;
     std::vector<dso::ImageAndExposure*> preloadedImages;
@@ -36,24 +27,12 @@ protected:
     std::string calibfile;
 
 public:
-    void getCalibMono(Eigen::Matrix3f &K, int &w, int &h)
-    {
-
-        K = undistort->getK().cast<float>();
-        w = undistort->getSize()[0];
-        h = undistort->getSize()[1];
-
-    }
-
+    virtual void getCalibMono(Eigen::Matrix3f &K, int &w, int &h) = 0;
     void setGlobalCalibration()
     {
         int w_out, h_out;
         Eigen::Matrix3f K;
         getCalibMono(K, w_out, h_out);
-        std::cout << "MATRIX: " << K << std::endl;
-        std::cout << w_out << std::endl;
-        std::cout << h_out << std::endl;
-
         dso::setGlobalCalib(w_out, h_out, K);
 
     }
@@ -67,12 +46,12 @@ public:
 
     }
 
-    dso::MinimalImageB* getImageRaw(int id)
+    virtual dso::MinimalImageB* getImageRaw(int id)
     {
             return getImageRaw_internal(id,0);
     }
 
-    dso::ImageAndExposure* getImage(int id, bool forceLoadDirectly=false)
+    virtual dso::ImageAndExposure* getImage(int id, bool forceLoadDirectly=false)
     {
         return getImage_internal(id, 0);
     }

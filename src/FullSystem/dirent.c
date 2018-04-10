@@ -7,7 +7,7 @@
     Rights:  See end of file.
 
 */
-
+#ifdef _WIN32
 #include <FullSystem/dirent.h>
 #include <errno.h>
 #include <io.h> /* _findfirst and _findnext set errno iff they return -1 */
@@ -131,7 +131,7 @@ void rewinddir(DIR *dir)
 #ifdef __cplusplus
 }
 #endif
-
+#endif
 /*
 
     Copyright Kevlin Henney, 1997, 2003, 2012. All rights reserved.

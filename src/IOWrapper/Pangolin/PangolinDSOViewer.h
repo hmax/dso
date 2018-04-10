@@ -23,13 +23,16 @@
 
 
 #pragma once
-#include <pangolin/pangolin_export.h>
+#include <pangolin/pangolin.h>
 #include "boost/thread.hpp"
 #include "util/MinimalImage.h"
 #include "IOWrapper/Output3DWrapper.h"
 #include <map>
 #include <deque>
+
+#ifdef _WIN32
 #include <Winsock2.h>
+#endif
 
 namespace dso
 {
